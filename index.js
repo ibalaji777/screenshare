@@ -101,7 +101,7 @@ function handleSignal(peer) {
     
     if (data.click) {
       var targetEl = document.elementFromPoint(pointX, pointY)
-      console.log(targetEl)
+      console.log(targetEl, targetEl.nodeName)
       var clickOpts = {
         view: window,
         bubbles: true,
@@ -109,12 +109,21 @@ function handleSignal(peer) {
       }
       
       targetEl.dispatchEvent(synthEvent('click', clickOpts))
+      targetEl.focus();
     }
     
     if (data.keydown && data.keydown.length) {
       data.keydown.forEach(function(e) {
         var el = document.activeElement
-        el.dispatchEvent(synthEvent('keydown', e))  
+        el.dispatchEvent(synthEvent('keydown', e))
+
+        var character = String.fromCharCode(e.keyCode)
+        if (el.nodeName == 'INPUT') {
+          if (typeof(el.selectionStart) != 'undefined') {
+            var oldValue = el.value;
+            el.value = oldValue.substring(0, el.selectionStart) + character + oldValue.substring(el.selectionEnd);
+          }
+        }
       })
     }
   })
@@ -153,7 +162,14 @@ window.addEventListener('mousemove', function(e){
   updateLastData(e)
 })
 
-window.addEventListener('keydown', function(e) {
+// window.addEventListener('keydown', function(e) {
+//   lastData.keydown = lastData.keydown || []
+//   lastData.keydown.push({keyCode: e.keyCode})
+//   needsSend = true
+// })
+
+window.addEventListener('keypress', function(e) {
+  console.log(e);
   lastData.keydown = lastData.keydown || []
   lastData.keydown.push({keyCode: e.keyCode})
   needsSend = true
